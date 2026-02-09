@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silkworm's Study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:wght@400;500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f1e8;
+      --paper: #fffaf3;
+      --ink: #2f2a24;
+      --muted: #6f6457;
+      --accent: #d19a66;
+      --accent-2: #c27c4b;
+      --border: #eadfce;
+      --shadow: 0 18px 40px rgba(90, 70, 40, 0.15);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Work Sans", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% 0%, #f9ead7 0%, transparent 60%),
+        radial-gradient(1000px 500px at 100% 0%, #f3dcc4 0%, transparent 55%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 24px 32px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    header h1 {
+      font-family: "Literata", serif;
+      font-weight: 600;
+      font-size: 22px;
+      margin: 0;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      padding: 24px 380px 40px 32px;
+    }
+
+    .reader {
+      background: var(--paper);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      min-height: 72vh;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .reader h2 {
+      font-family: "Literata", serif;
+      font-weight: 600;
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .controls input[type="file"] {
+      display: none;
+    }
+
+    .btn {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 8px 18px rgba(209, 154, 102, 0.25);
+    }
+
+    .btn.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      box-shadow: none;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .reader textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 320px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 18px;
+      font-family: "Literata", serif;
+      font-size: 16px;
+      line-height: 1.8;
+      background: #fff;
+      color: var(--ink);
+      resize: vertical;
+    }
+
+    .reader .text-output {
+      flex: 1;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 18px;
+      background: #fff;
+      font-family: "Literata", serif;
+      font-size: 17px;
+      line-height: 1.9;
+      min-height: 260px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .reader .empty {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .reader .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .dictionary {
+      width: 320px;
+      background: #fff9f0;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+      position: fixed;
+      right: 32px;
+      top: 120px;
+      height: calc(100vh - 160px);
+    }
+
+    .dictionary.collapsed {
+      transform: translateX(270px);
+    }
+
+    .dict-header {
+      padding: 18px;
+      background: #f5e6d2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    .dict-body {
+      padding: 12px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .dict-list {
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 6px;
+    }
+
+    .dict-item {
+      border-bottom: 1px dashed var(--border);
+      padding: 10px 4px 12px;
+    }
+
+    .dict-item:last-child { border-bottom: none; }
+
+    .dict-item h4 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      letter-spacing: 0.2px;
+    }
+
+    .dict-item p {
+      margin: 2px 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .dict-actions {
+      margin-top: 6px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .dict-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #ffe7c7;
+      color: #8a5a28;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin-left: 6px;
+    }
+
+    .tooltip {
+      position: absolute;
+      background: #2b241d;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 20;
+      max-width: 240px;
+    }
+
+    .tooltip.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .drawer-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: #f7d9b5;
+      color: #6a421e;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(30, 22, 14, 0.35);
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 40;
+    }
+
+    .modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #fffaf3;
+      padding: 24px;
+      border-radius: 16px;
+      width: min(360px, 90vw);
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 12px;
+    }
+
+    .modal-card h3 {
+      margin: 0;
+      font-family: "Literata", serif;
+    }
+
+    .modal-card label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .modal-card input,
+    .modal-card textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px;
+      font-size: 13px;
+      font-family: "Work Sans", sans-serif;
+    }
+
+    .modal-card textarea { min-height: 70px; }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+        padding-right: 32px;
+      }
+
+      .dictionary {
+        width: 100%;
+        position: static;
+        height: auto;
+      }
+
+      .dictionary.collapsed {
+        transform: translateY(240px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Silkworm's Study</h1>
+      <p>따뜻한 톤으로 영어 원서를 읽고, 단어를 바로 정리하세요.</p>
+    </div>
+    <button class="btn secondary" id="editTextBtn">텍스트 수정</button>
+  </header>
+
+  <div class="layout">
+    <section class="reader">
+      <h2>텍스트 입력 또는 파일 업로드</h2>
+      <div class="controls">
+        <label class="btn" for="fileInput">파일 업로드</label>
+        <input type="file" id="fileInput" accept=".txt" />
+        <label class="btn secondary" for="csvInput">CSV 가져오기</label>
+        <input type="file" id="csvInput" accept=".csv" />
+        <button class="btn secondary" id="loadSample">샘플 불러오기</button>
+        <button class="btn secondary" id="clearText">지우기</button>
+      </div>
+      <textarea id="textInput" placeholder="여기에 영어 텍스트를 붙여넣거나 입력하세요. Enter로 읽기 모드로 전환, Shift+Enter로 줄바꿈."></textarea>
+      <div class="text-output" id="textOutput" hidden>
+        <p class="empty">텍스트가 표시됩니다. 단어를 더블클릭해서 사전에 추가하세요.</p>
+      </div>
+      <div class="actions">
+        <span>단어를 더블클릭하면 사전에 추가됩니다. 한번 클릭하면 사전을 열어줍니다.</span>
+        <span id="wordCount">단어 0개</span>
+      </div>
+    </section>
+
+    <aside class="dictionary" id="dictionary">
+      <div class="dict-header">
+        <span>미니 사전</span>
+        <button class="drawer-toggle" id="dictToggle">≡</button>
+      </div>
+      <div class="dict-body">
+        <div class="dict-list" id="dictList">
+          <p class="empty">아직 등록된 단어가 없습니다.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <h3 id="modalTitle">단어 추가</h3>
+      <div>
+        <label>단어</label>
+        <input id="wordField" type="text" />
+      </div>
+      <div>
+        <label>한국어 뜻</label>
+        <textarea id="meaningField"></textarea>
+      </div>
+      <div>
+        <label>뉘앙스</label>
+        <input id="nuanceField" type="text" />
+      </div>
+      <div>
+        <label>발음</label>
+        <input id="pronounceField" type="text" />
+      </div>
+      <div>
+        <label>간단한 어원</label>
+        <input id="originField" type="text" />
+      </div>
+      <div>
+        <label>CSV 입력 (word, meaning, nuance, pronunciation, origin)</label>
+        <textarea id="csvField" placeholder="예: breeze, 산들바람, 부드럽고 가벼운 느낌, 브리즈, 고대 영어 브리즈"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" id="cancelModal">취소</button>
+        <button class="btn secondary" id="applyCsv">CSV 적용</button>
+        <button class="btn" id="saveModal">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const textInput = document.getElementById('textInput');
+    const textOutput = document.getElementById('textOutput');
+    const fileInput = document.getElementById('fileInput');
+    const csvInput = document.getElementById('csvInput');
+    const dictList = document.getElementById('dictList');
+    const wordCount = document.getElementById('wordCount');
+    const tooltip = document.getElementById('tooltip');
+    const modal = document.getElementById('modal');
+    const wordField = document.getElementById('wordField');
+    const meaningField = document.getElementById('meaningField');
+    const nuanceField = document.getElementById('nuanceField');
+    const pronounceField = document.getElementById('pronounceField');
+    const originField = document.getElementById('originField');
+    const modalTitle = document.getElementById('modalTitle');
+    const csvField = document.getElementById('csvField');
+
+    const editTextBtn = document.getElementById('editTextBtn');
+    const dictToggle = document.getElementById('dictToggle');
+    const dictionary = document.getElementById('dictionary');
+
+    let dictionaryData = new Map();
+    let editingWord = null;
+    let isReadingMode = false;
+
+    const STORAGE_KEYS = {
+      dict: 'readingToolDictionary',
+      text: 'readingToolText',
+    };
+
+    function normalizeWord(word) {
+      return word.toLowerCase();
+    }
+
+    function renderTextOutput() {
+      const text = textInput.value.trim();
+      if (!text) {
+        textOutput.innerHTML = '<p class="empty">텍스트가 표시됩니다. 단어를 더블클릭해서 사전에 추가하세요.</p>';
+        wordCount.textContent = '단어 0개';
+        return;
+      }
+
+      const words = text.match(/[A-Za-z']+/g) || [];
+      wordCount.textContent = `단어 ${words.length}개`;
+
+      const html = text
+        .split(/(\b[A-Za-z']+\b)/g)
+        .map((chunk) => {
+          if (/^[A-Za-z']+$/.test(chunk)) {
+            const key = normalizeWord(chunk);
+            return `<span class="word" data-word="${key}">${chunk}</span>`;
+          }
+          return chunk.replace(/\n/g, '<br />');
+        })
+        .join('');
+
+      textOutput.innerHTML = html;
+    }
+
+    function renderDictionary() {
+      const items = Array.from(dictionaryData.values()).sort((a, b) =>
+        a.word.localeCompare(b.word)
+      );
+
+      if (items.length === 0) {
+        dictList.innerHTML = '<p class="empty">아직 등록된 단어가 없습니다.</p>';
+        return;
+      }
+
+      dictList.innerHTML = items
+        .map(
+          (item) => `
+          <div class="dict-item">
+            <h4>${item.word} <span class="tag">${item.meaning || '뜻 미정'}</span></h4>
+            <p><strong>뉘앙스:</strong> ${item.nuance || '-'} </p>
+            <p><strong>발음:</strong> ${item.pronunciation || '-'} </p>
+            <p><strong>어원:</strong> ${item.origin || '-'} </p>
+            <div class="dict-actions">
+              <button class="dict-btn" data-action="edit" data-word="${item.word}">편집</button>
+              <button class="dict-btn" data-action="delete" data-word="${item.word}">삭제</button>
+            </div>
+          </div>
+        `
+        )
+        .join('');
+    }
+
+    function openModal(word, existing) {
+      modal.classList.add('open');
+      wordField.value = word || '';
+      meaningField.value = existing?.meaning || '';
+      nuanceField.value = existing?.nuance || '';
+      pronounceField.value = existing?.pronunciation || '';
+      originField.value = existing?.origin || '';
+      csvField.value = existing
+        ? `${existing.word}, ${existing.meaning || ''}, ${existing.nuance || ''}, ${existing.pronunciation || ''}, ${existing.origin || ''}`
+        : '';
+      editingWord = existing ? existing.word : null;
+      modalTitle.textContent = existing ? '단어 수정' : '단어 추가';
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      editingWord = null;
+    }
+
+    function saveWord() {
+      if (csvField.value.trim()) {
+        applyCsvToModal();
+      }
+      const word = wordField.value.trim();
+      if (!word) return;
+
+      const key = normalizeWord(word);
+      dictionaryData.set(key, {
+        word,
+        meaning: meaningField.value.trim(),
+        nuance: nuanceField.value.trim(),
+        pronunciation: pronounceField.value.trim(),
+        origin: originField.value.trim(),
+      });
+
+      if (editingWord && editingWord !== key) {
+        dictionaryData.delete(editingWord);
+      }
+
+      persistDictionary();
+      renderDictionary();
+      closeModal();
+    }
+
+    function openDictionary() {
+      dictionary.classList.remove('collapsed');
+    }
+
+    function showEditor() {
+      isReadingMode = false;
+      textInput.hidden = false;
+      textOutput.hidden = true;
+    }
+
+    function showReader() {
+      isReadingMode = true;
+      textInput.hidden = true;
+      textOutput.hidden = false;
+    }
+
+    function persistDictionary() {
+      const items = Array.from(dictionaryData.values());
+      localStorage.setItem(STORAGE_KEYS.dict, JSON.stringify(items));
+    }
+
+    function loadDictionary() {
+      const raw = localStorage.getItem(STORAGE_KEYS.dict);
+      if (!raw) return;
+      try {
+        const items = JSON.parse(raw);
+        dictionaryData = new Map(
+          items.map((item) => [normalizeWord(item.word), item])
+        );
+      } catch (err) {
+        dictionaryData = new Map();
+      }
+    }
+
+    function persistText() {
+      localStorage.setItem(STORAGE_KEYS.text, textInput.value);
+    }
+
+    function loadText() {
+      const saved = localStorage.getItem(STORAGE_KEYS.text);
+      if (saved) {
+        textInput.value = saved;
+      }
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i += 1) {
+        const char = line[i];
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    function applyCsvToModal() {
+      const parts = parseCSVLine(csvField.value.trim());
+      if (!parts[0]) return;
+      wordField.value = parts[0] || '';
+      meaningField.value = parts[1] || '';
+      nuanceField.value = parts[2] || '';
+      pronounceField.value = parts[3] || '';
+      originField.value = parts[4] || '';
+    }
+
+    function importCSV(text) {
+      const lines = text.split(/\r?\n/).filter((line) => line.trim());
+      if (lines.length === 0) return;
+      const hasHeader = /word/i.test(lines[0]);
+      const dataLines = hasHeader ? lines.slice(1) : lines;
+      dataLines.forEach((line) => {
+        const [word, meaning, nuance, pronunciation, origin] = parseCSVLine(line);
+        if (!word) return;
+        const key = normalizeWord(word);
+        dictionaryData.set(key, {
+          word: word.trim(),
+          meaning: (meaning || '').trim(),
+          nuance: (nuance || '').trim(),
+          pronunciation: (pronunciation || '').trim(),
+          origin: (origin || '').trim(),
+        });
+      });
+      persistDictionary();
+      renderDictionary();
+    }
+
+    function updateReadingModeFromText() {
+      renderTextOutput();
+      if (textInput.value.trim()) {
+        showReader();
+      } else {
+        showEditor();
+      }
+    }
+
+    textInput.addEventListener('input', () => {
+      renderTextOutput();
+      persistText();
+    });
+
+    textInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        renderTextOutput();
+        showReader();
+      }
+    });
+
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        textInput.value = reader.result;
+        renderTextOutput();
+        persistText();
+        showReader();
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    csvInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        importCSV(reader.result);
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    document.getElementById('loadSample').addEventListener('click', () => {
+      textInput.value =
+        "She leaned into the autumn light, tracing the weathered letters as if they still held the warmth of their writer. The quiet corridor smelled of ink and cedar.";
+      renderTextOutput();
+      persistText();
+      showReader();
+    });
+
+    document.getElementById('clearText').addEventListener('click', () => {
+      textInput.value = '';
+      renderTextOutput();
+      persistText();
+      showEditor();
+    });
+
+    textOutput.addEventListener('dblclick', (event) => {
+      const target = event.target.closest('.word');
+      if (!target) return;
+      const word = target.dataset.word;
+      const existing = dictionaryData.get(word);
+      openModal(existing?.word || target.textContent, existing);
+    });
+
+    textOutput.addEventListener('click', (event) => {
+      const target = event.target.closest('.word');
+      if (!target) return;
+      openDictionary();
+    });
+
+    textOutput.addEventListener('mouseover', (event) => {
+      const target = event.target.closest('.word');
+      if (!target) return;
+      const word = target.dataset.word;
+      const existing = dictionaryData.get(word);
+      if (!existing || !existing.meaning) return;
+
+      tooltip.textContent = `${existing.meaning}`;
+      const rect = target.getBoundingClientRect();
+      tooltip.style.left = `${rect.left + window.scrollX}px`;
+      tooltip.style.top = `${rect.top + window.scrollY - 32}px`;
+      tooltip.classList.add('show');
+    });
+
+    textOutput.addEventListener('mouseout', () => {
+      tooltip.classList.remove('show');
+    });
+
+    document.getElementById('saveModal').addEventListener('click', saveWord);
+    document.getElementById('cancelModal').addEventListener('click', closeModal);
+    document.getElementById('applyCsv').addEventListener('click', applyCsvToModal);
+
+    dictList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-action]');
+      if (!button) return;
+      const action = button.dataset.action;
+      const word = button.dataset.word;
+      const key = normalizeWord(word);
+      const existing = dictionaryData.get(key);
+      if (!existing) return;
+      if (action === 'edit') {
+        openModal(existing.word, existing);
+        return;
+      }
+      if (action === 'delete') {
+        dictionaryData.delete(key);
+        persistDictionary();
+        renderDictionary();
+      }
+    });
+
+    dictToggle.addEventListener('click', () => {
+      dictionary.classList.toggle('collapsed');
+    });
+
+    editTextBtn.addEventListener('click', () => {
+      showEditor();
+      textInput.focus();
+    });
+
+    loadDictionary();
+    loadText();
+    renderDictionary();
+    updateReadingModeFromText();
+    renderTextOutput();
+  </script>
+</body>
+</html>
